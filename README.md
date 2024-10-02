@@ -22,8 +22,6 @@ Windows only.
 - Download the version you want to update to.
 - Follow the instructions for installation.
 
-Here are the instructions on how to build the ImHex Discord RPC from source:
-
 ## Building from Source
 
 ### Prerequisites
