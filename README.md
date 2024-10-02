@@ -19,7 +19,7 @@ Windows only.
 
 ![exit](img/exit.png?raw=true)
 
-- Download the version you want to update to
+- Download the version you want to update to.
 - Follow the instructions for installation.
 
 Here are the instructions on how to build the ImHex Discord RPC from source:
