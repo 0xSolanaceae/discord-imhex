@@ -31,25 +31,9 @@ Before you can build the project, ensure you have the following installed:
 1. **Rust**: You can install Rust using `rustup`. Follow the instructions on the [official Rust website](https://www.rust-lang.org/tools/install).
 2. **Cargo**: This is included with the Rust installation.
 
-### Cloning the Repository
-
-1. Open your terminal or command prompt.
-2. Navigate to the directory where you want to clone the repository.
-3. Run the following command to clone the repository:
-
-   ```bash
-   git clone https://github.com/Atropa-Solanaceae/ImHex-Discord-RPC.git
-   ```
-
-4. Change to the project directory:
-
-   ```bash
-   cd ImHex-Discord-RPC
-   ```
-
 ### Building the Project
 
-1. To build the project in release mode, run the following command:
+1. To build the project, run the following command in the root directory:
 
    ```bash
    cargo build --release
