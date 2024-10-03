@@ -1,4 +1,4 @@
-# ImHex Discord RPC
+# discord-imhex
 
 A Discord Rich Presence Client for ImHex, not reliant on the ImHex API. 
 Windows only.
