@@ -5,9 +5,12 @@ use std::os::windows::ffi::OsStringExt;
 use std::os::windows::process::CommandExt;
 use std::process::Command;
 use std::sync::Mutex;
+use std::path::PathBuf;
 
+use crate::utils::current_timestamp;
 use lazy_static::lazy_static;
 use chrono::Local;
+use dirs::home_dir;
 
 use winapi::shared::minwindef::LPARAM;
 use winapi::shared::windef::HWND;
@@ -20,12 +23,16 @@ lazy_static! {
 }
 
 fn log_error(message: &str) {
+    let mut log_file_path = home_dir().unwrap_or_else(|| PathBuf::from("C:\\Users\\Default"));
+    log_file_path.push(".discord-imhex/error.log");
+
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open("error.log")
+        .open(log_file_path)
         .unwrap();
-    writeln!(file, "{}", message).unwrap();
+    let timestamp = current_timestamp();
+    writeln!(file, "[{}] {}", timestamp, message).unwrap();
 }
 
 fn string_to_hex(s: &str) -> String {
@@ -47,18 +54,17 @@ unsafe extern "system" fn enum_windows_proc(hwnd: HWND, lparam: LPARAM) -> i32 {
 
         if window_title.starts_with("ImHex") || window_title.contains("imhex-gui.exe") {
             let mut previous_title = PREVIOUS_TITLE.lock().unwrap();
-            let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
             if let Some(index) = window_title.find(" - ") {
                 let current_opened_file = &window_title[(index + 3)..];
                 if previous_title.as_deref() != Some(current_opened_file) {
-                    log_error(&format!("Currently opened file: {} at {}", current_opened_file, timestamp));
+                    log_error(&format!("Currently opened file: {}", current_opened_file));
                     *previous_title = Some(current_opened_file.to_string());
                 }
                 *(lparam as *mut String) = current_opened_file.to_string();
             } else {
                 if previous_title.as_deref() != Some(&window_title) {
                     let hex_string = string_to_hex(&window_title);
-                    log_error(&format!("Currently opened file: {} at {}", hex_string, timestamp));
+                    log_error(&format!("Currently opened file: {}", hex_string));
                     *previous_title = Some(window_title.clone());
                 }
                 *(lparam as *mut String) = window_title;
@@ -104,22 +110,26 @@ pub fn get_selected_bytes() -> Option<String> {
 }
 
 pub(crate) fn is_imhex_running() -> bool {
-    let output = Command::new("tasklist")
+    let output = match Command::new("tasklist")
         .arg("/FI")
         .arg("IMAGENAME eq imhex-gui.exe")
         .creation_flags(CREATE_NO_WINDOW)
-        .output()
-        .expect("Failed to execute tasklist");
+        .output() {
+            Ok(output) => output,
+            Err(e) => {
+                log_error(&format!("Failed to execute tasklist: {}", e));
+                return false;
+            }
+        };
 
     let output_str = String::from_utf8_lossy(&output.stdout);
     let is_running = output_str.contains("imhex-gui.exe");
-    let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
     let mut previous_running_state = PREVIOUS_RUNNING_STATE.lock().unwrap();
     if is_running != *previous_running_state {
         if is_running {
-            log_error(&format!("ImHex is running at {}", timestamp));
+            log_error(&format!("ImHex is running."));
         } else {
-            log_error(&format!("ImHex is not running at {}", timestamp));
+            log_error(&format!("ImHex is not running."));
         }
         *previous_running_state = is_running;
     }

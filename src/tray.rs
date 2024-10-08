@@ -8,15 +8,16 @@ use std::thread;
 use chrono::Local;
 use systray::{Application, Error as SystrayError};
 
-// add update search for releases tab on github
+//FIXME add update search for releases tab on github
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const ICON: &[u8] = include_bytes!("data/icon.ico");
 
 fn log_error(message: &str) {
+    let log_file_path = ".discord-imhex/error.log";
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open("error.log")
+        .open(log_file_path)
         .unwrap();
     writeln!(file, "{}", message).unwrap();
 }
@@ -47,7 +48,7 @@ pub fn create_tray_icon(running: &Arc<AtomicBool>) -> Result<Arc<Mutex<Applicati
             log_error(&format!("Failed to set icon from file: {} at {}", e, Local::now().format("%Y-%m-%d %H:%M:%S")));
             e
         })?;
-        app.set_tooltip(&format!("ImHex-RPC v{}", VERSION)).map_err(|e| {
+        app.set_tooltip(&format!("discord-imhex v{}", VERSION)).map_err(|e| {
             log_error(&format!("Failed to set tooltip: {} at {}", e, Local::now().format("%Y-%m-%d %H:%M:%S")));
             e
         })?;
@@ -55,8 +56,8 @@ pub fn create_tray_icon(running: &Arc<AtomicBool>) -> Result<Arc<Mutex<Applicati
 
     {
         let app = Arc::clone(&app);
-        app.lock().unwrap().add_menu_item(&format!("ImHex-RPC v{}", VERSION), |_| -> Result<(), SystrayError> {
-            let _ = open::that("https://github.com/Atropa-Solanaceae/ImHex-Discord-RPC");
+        app.lock().unwrap().add_menu_item(&format!("discord-imhex v{}", VERSION), |_| -> Result<(), SystrayError> {
+            let _ = open::that("https://github.com/0xSolanaceae/discord-imhex");
             Ok(())
         }).map_err(|e| {
             log_error(&format!("Failed to add menu item: {} at {}", e, Local::now().format("%Y-%m-%d %H:%M:%S")));
@@ -64,6 +65,19 @@ pub fn create_tray_icon(running: &Arc<AtomicBool>) -> Result<Arc<Mutex<Applicati
         })?;
         app.lock().unwrap().add_menu_separator().map_err(|e| {
             log_error(&format!("Failed to add menu separator: {} at {}", e, Local::now().format("%Y-%m-%d %H:%M:%S")));
+            e
+        })?;
+    }
+
+    {
+        let app = Arc::clone(&app);
+        app.lock().unwrap().add_menu_item("View Logs", |_| -> Result<(), SystrayError> {
+            let user_profile = env::var("USERPROFILE").unwrap();
+            let folder_path = format!("{}\\.discord-imhex", user_profile);
+            let _ = open::that(folder_path);
+            Ok(())
+        }).map_err(|e| {
+            log_error(&format!("Failed to add open folder menu item: {} at {}", e, Local::now().format("%Y-%m-%d %H:%M:%S")));
             e
         })?;
     }

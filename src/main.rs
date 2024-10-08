@@ -1,17 +1,21 @@
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 
 mod imhex;
 mod tray;
 mod utils;
+mod updater;
 
 use discord_rich_presence::{activity::{Activity, Timestamps}, DiscordIpc, DiscordIpcClient};
 use log::error;
-
 use std::error::Error;
-use std::fs::File;
+use std::fs::{self, File, OpenOptions};
+use std::io::Write;
+use std::path::Path;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
+use chrono::Local;
+use tokio::runtime::Runtime;
 
 pub struct DiscordClient {
     client: DiscordIpcClient,
@@ -39,15 +43,30 @@ pub fn create_timestamps(start_time: i64) -> Timestamps {
 }
 
 fn setup_logging() -> Result<(), Box<dyn Error>> {
-    File::create("error.log")?;
+    let home_dir = std::env::var("USERPROFILE")?;
+    let log_dir = Path::new(&home_dir).join(".discord-imhex");
+
+    if !log_dir.exists() {
+        fs::create_dir(&log_dir)?;
+    }
+
+    let log_file_path = log_dir.join("error.log");
+    File::create(&log_file_path)?;
+
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log_file_path)?;
+
+    let timestamp = Local::now();
+    writeln!(file, "[{}] Log file successfully created in {:?}", timestamp.format("%Y-%m-%d %H:%M:%S"), log_dir)?;
+
     Ok(())
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     setup_logging()?;
     let client_id = "1060827018196955177";
-    let mut client = DiscordClient::new(client_id)?;
-
     let running = Arc::new(AtomicBool::new(true));
     let running_clone = Arc::clone(&running);
 
@@ -56,23 +75,34 @@ fn main() -> Result<(), Box<dyn Error>> {
         e
     })?;
 
+    let rt = Runtime::new()?;
+    rt.spawn(updater::start_updater());
+
     let mut start_time: Option<i64> = None;
     let mut imhex_was_running = false;
 
     while running.load(Ordering::SeqCst) {
-        if imhex::is_imhex_running() {
-            handle_imhex_running(&mut client, &mut start_time, &mut imhex_was_running)?;
-        } else {
-            handle_imhex_not_running(&mut client, &mut imhex_was_running, &mut start_time)?;
+        match DiscordClient::new(client_id) {
+            Ok(mut client) => {
+                while running.load(Ordering::SeqCst) {
+                    if imhex::is_imhex_running() {
+                        handle_imhex_running(&mut client, &mut start_time, &mut imhex_was_running)?;
+                    } else {
+                        handle_imhex_not_running(&mut client, &mut imhex_was_running, &mut start_time)?;
+                    }
+                    thread::sleep(std::time::Duration::from_millis(100));
+                }
+                client.clear_activity().map_err(|e| {
+                    error!("Failed to clear activity: {}", e);
+                    e
+                })?;
+            }
+            Err(e) => {
+                error!("Failed to connect to Discord client: {}", e);
+                thread::sleep(std::time::Duration::from_secs(5));
+            }
         }
-
-        thread::sleep(std::time::Duration::from_millis(100));
     }
-
-    client.clear_activity().map_err(|e| {
-        error!("Failed to clear activity: {}", e);
-        e
-    })?;
 
     Ok(())
 }

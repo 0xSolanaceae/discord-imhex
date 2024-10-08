@@ -16,7 +16,6 @@ Windows only.
 ## Updating
 
 - Exit ImHex_RPC
-
 ![exit](img/exit.png?raw=true)
 
 - Download the version you want to update to.

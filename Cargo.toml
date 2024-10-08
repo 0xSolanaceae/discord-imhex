@@ -1,24 +1,29 @@
 [package]
-name = "imhex_rpc"
-version = "1.0.0"
+name = "discord-imhex"
+version = "1.0.1"
 edition = "2021"
 authors = ["Solanaceae <https://solanaceae.xyz>"]
 description = "A Discord Rich Presence Client for ImHex, not reliant on the ImHex API."
 readme = "README.md"
-repository = "https://github.com/Atropa-Solanaceae/ImHex-Discord-RPC"
+repository = "https://github.com/0xSolanaceae/discord-imhex"
 license = "GPL-3.0"
 include = ["src/data/icon.ico"]
 build = "build.rs"
 
 [dependencies]
+semver = "1.0.23"
+dirs = "5.0.1"
 chrono = "0.4.38"
 discord-rich-presence = "0.2.5"
 lazy_static = "1.5.0"
 log = "0.4.22"
-open = "5"
+open = "5.3.0"
 systray = "0.4.0"
-tray-icon = "0.14.3"
-winapi = { version = "0.3", features = ["winuser", "winbase"] }
+tray-icon = "0.19.0"
+winapi = { version = "0.3.9", features = ["winuser", "winbase"] }
+reqwest = { version = "0.12.8", features = ["json"] }
+tokio = { version = "1.40.0", features = ["full"] }
+serde = { version = "1.0.210", features = ["derive"] }
 
 [build-dependencies]
 winres = "0.1.12"
