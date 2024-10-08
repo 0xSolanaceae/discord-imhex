@@ -5,7 +5,7 @@ Windows only.
 
 ## Preview
 
-![RPC](img/examplerpc.png?raw=true)
+> ![RPC](img/examplerpc.png?raw=true)
 
 ## Installing
 
@@ -13,10 +13,11 @@ Windows only.
 - Open the `shell:startup` folder with the windows run menu (`win + r`), and drag the executable there.
 - Double click to run, or restart.
 
-## Updating
+## Updating (Manual)
 
 - Exit ImHex_RPC
-![exit](img/exit.png?raw=true)
+
+> ![exit](img/exit.png?raw=true)
 
 - Download the version you want to update to.
 - Follow the instructions for installation.
