@@ -8,11 +8,11 @@ use std::thread;
 use chrono::Local;
 use systray::{Application, Error as SystrayError};
 
-//FIXME add update search for releases tab on github
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-const ICON: &[u8] = include_bytes!("data/icon.ico");
+// FIXME add update search for releases tab on github
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const ICON: &[u8] = include_bytes!("data/icon.ico");
 
-fn log_error(message: &str) {
+pub(crate) fn log_error(message: &str) {
     let log_file_path = ".discord-imhex/error.log";
     let mut file = OpenOptions::new()
         .create(true)

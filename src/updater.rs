@@ -8,6 +8,7 @@ use tokio::time::interval;
 use semver::Version;
 use dirs::home_dir;
 use std::env;
+use chrono::Local;
 
 #[derive(Deserialize)]
 struct Release {
@@ -20,7 +21,7 @@ struct Asset {
     browser_download_url: String,
 }
 
-async fn check_for_updates() -> Result<(), Error> {
+pub async fn check_for_updates() -> Result<(), Error> {
     let url = "https://api.github.com/repos/0xSolanaceae/discord-imhex/releases/latest";
     let client = reqwest::Client::new();
     let response = client
@@ -51,7 +52,7 @@ async fn check_for_updates() -> Result<(), Error> {
     Ok(())
 }
 
-async fn download_and_run_update(url: &str) -> Result<(), Error> {
+pub async fn download_and_run_update(url: &str) -> Result<(), Error> {
     let client = reqwest::Client::new();
     let response = client.get(url).send().await?.bytes().await?;
 
@@ -83,7 +84,7 @@ pub async fn start_updater() {
     }
 }
 
-fn log_message(message: &str) {
+pub fn log_message(message: &str) {
     if let Some(home_dir) = home_dir() {
         let log_path = home_dir.join(".discord-imhex").join("error.log");
         if let Some(log_dir) = log_path.parent() {
@@ -94,7 +95,8 @@ fn log_message(message: &str) {
             .append(true)
             .open(log_path)
             .expect("Unable to open log file");
-        writeln!(log_file, "{}", message).expect("Unable to write to log file");
+        let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S");
+        writeln!(log_file, "[{}] {}", timestamp, message).expect("Unable to write to log file");
     } else {
         eprintln!("Unable to determine home directory");
     }
