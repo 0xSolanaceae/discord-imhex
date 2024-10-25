@@ -9,6 +9,7 @@ use semver::Version;
 use dirs::home_dir;
 use std::env;
 use chrono::Local;
+use lazy_static::lazy_static;
 
 #[derive(Deserialize)]
 struct Release {
@@ -21,10 +22,13 @@ struct Asset {
     browser_download_url: String,
 }
 
-pub async fn check_for_updates() -> Result<(), Error> {
+lazy_static! {
+    static ref CLIENT: reqwest::Client = reqwest::Client::new();
+}
+
+pub async fn check_for_updates() -> Result<(), Box<dyn std::error::Error>> {
     let url = "https://api.github.com/repos/0xSolanaceae/discord-imhex/releases/latest";
-    let client = reqwest::Client::new();
-    let response = client
+    let response = CLIENT
         .get(url)
         .header("User-Agent", "discord-imhex")
         .send()
@@ -35,8 +39,8 @@ pub async fn check_for_updates() -> Result<(), Error> {
     let latest_version = response.tag_name.trim_start_matches('v');
     let current_version = env!("CARGO_PKG_VERSION").trim_start_matches('v');
 
-    let latest_version = Version::parse(latest_version).expect("Invalid latest version format");
-    let current_version = Version::parse(current_version).expect("Invalid current version format");
+    let latest_version = Version::parse(latest_version)?;
+    let current_version = Version::parse(current_version)?;
 
     if latest_version > current_version {
         log_message(&format!("Update available: v{} -> v{}", current_version, latest_version));
@@ -78,9 +82,11 @@ pub async fn start_updater() {
     let mut interval = interval(Duration::from_secs(60 * 60 * 4));
     loop {
         interval.tick().await;
-        if let Err(e) = check_for_updates().await {
-            log_message(&format!("Failed to check for updates: {}", e));
-        }
+        tokio::spawn(async {
+            if let Err(e) = check_for_updates().await {
+                log_message(&format!("Failed to check for updates: {}", e));
+            }
+        });
     }
 }
 
