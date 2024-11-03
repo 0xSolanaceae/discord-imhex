@@ -5,6 +5,7 @@ pub mod tray;
 pub mod utils;
 pub mod updater;
 
+use winapi::um::winuser::SetProcessDPIAware;
 use discord_rich_presence::{activity::{Activity, Timestamps}, DiscordIpc, DiscordIpcClient};
 use log::{error, info};
 use std::fs::{self, OpenOptions};
@@ -203,6 +204,10 @@ fn run_discord_loop(client: &mut DiscordClient, state: &mut AppState, config: &C
 }
 
 fn main() -> Result<(), AppError> {
+    unsafe {
+        SetProcessDPIAware();
+    }
+    
     let config = Config::new()?;
     setup_logging(&config.log_dir)?;
     
