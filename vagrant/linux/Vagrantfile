@@ -1,6 +1,9 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# TODO 
+# this software does NOT work for linux yet
+
 Vagrant.configure("2") do |config|
     hostname = "lin.rustbox"
     locale = "en_GB.UTF.8"
