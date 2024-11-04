@@ -1,1 +1,11 @@
-tab_spaces = 2
+edition = "2021"
+max_width = 100
+use_small_heuristics = "Max"
+struct_field_align_threshold = 3
+reorder_imports = true 
+group_imports = "Preserve"
+format_macro_bang = true
+allow_comments = true
+format_panic_macro = true
+hard_tabs = true
+tab_spaces = 4
