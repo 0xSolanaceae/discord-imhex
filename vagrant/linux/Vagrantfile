@@ -1,0 +1,28 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+    hostname = "lin.rustbox"
+    locale = "en_GB.UTF.8"
+
+    config.vm.box = "ubuntu/trusty64"
+  
+    config.vm.provider "virtualbox" do |v|
+        v.graphics_type = "vnc"
+        v.graphics_autoport = true
+        v.memory = 4096
+        v.cpus = 2
+    end
+  
+    config.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get update
+      sudo apt-get upgrade -y
+  
+      sudo apt-get install -y git curl build-essential
+  
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  
+      cd /home/vagrant
+      git clone https://github.com/0xSolanaceae/discord-imhex.git
+    SHELL
+  end
