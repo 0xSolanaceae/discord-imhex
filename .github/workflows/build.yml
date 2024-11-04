@@ -1,4 +1,4 @@
-name: Buildchecks
+name: Build
 
 on:
   push:
